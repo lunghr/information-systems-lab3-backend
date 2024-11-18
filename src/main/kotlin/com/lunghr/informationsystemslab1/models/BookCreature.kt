@@ -14,7 +14,5 @@ class BookCreature(
     private var creatureType: BookCreatureType,
     private var ring: Ring,
     private var creatureLocation: MagicCity,
-    private var attackLevel: Float
-) {
-
-}
+    private var attackLevel: Float,
+)

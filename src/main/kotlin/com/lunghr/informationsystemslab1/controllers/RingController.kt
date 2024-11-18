@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/rings")
-class RingController (@Autowired private val ringRepository: RingRepository) {
+class RingController(
+    @Autowired private val ringRepository: RingRepository,
+) {
     @GetMapping
     fun getAllRings(): List<Ring> {
         val rings = ringRepository.findAll().toList()
@@ -18,15 +20,18 @@ class RingController (@Autowired private val ringRepository: RingRepository) {
     }
 
     @PostMapping
-    fun addRing(@RequestBody ring: Ring): ResponseEntity<Ring> {
+    fun addRing(
+        @RequestBody ring: Ring,
+    ): ResponseEntity<Ring> {
         println("add $ring")
         val savedRing = ringRepository.save(ring)
         return ResponseEntity(savedRing, HttpStatus.CREATED)
     }
 
-
     @GetMapping("/{id}")
-    fun getRingById(@PathVariable id: Int): ResponseEntity<Ring> {
+    fun getRingById(
+        @PathVariable id: Int,
+    ): ResponseEntity<Ring> {
         val ring = ringRepository.findById(id)
         return if (ring.isPresent) {
             ResponseEntity(ring.get(), HttpStatus.OK)

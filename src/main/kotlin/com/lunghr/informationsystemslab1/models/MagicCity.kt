@@ -7,6 +7,5 @@ class MagicCity(
     private val establishedData: java.time.LocalDateTime,
     private var governor: BookCreatureType,
     private var capital: Boolean,
-    private var populationDensity: Double
-) {
-}
+    private var populationDensity: Double,
+)

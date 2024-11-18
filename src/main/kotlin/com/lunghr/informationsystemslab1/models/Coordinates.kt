@@ -1,7 +1,6 @@
 package com.lunghr.informationsystemslab1.models
 
-class Coordinates (
+class Coordinates(
     private val x: Int,
-    private val y: Double
-){
-}
+    private val y: Double,
+)
