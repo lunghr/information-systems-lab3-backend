@@ -49,23 +49,23 @@ jobs:
       - name: Lint with ktlint
         run: ./ktlint 'src/**/*.kt'
 
-    test:
-      runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        - name: Set up JDK 21
-          uses: actions/setup-java@v2
-          with:
-            distribution: 'coretto'
-            java-version: '21'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'coretto'
+          java-version: '21'
 
-        - name: Gave execute permission to gradlew
-          run: chmod +x gradlew
+      - name: Gave execute permission to gradlew
+        run: chmod +x gradlew
 
-        - name: Run tests
-          run: ./gradlew test
+      - name: Run tests
+        run: ./gradlew test
 
 
