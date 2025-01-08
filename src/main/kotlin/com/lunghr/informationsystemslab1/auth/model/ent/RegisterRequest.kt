@@ -1,16 +1,12 @@
 package com.lunghr.informationsystemslab1.auth.model.ent
 
-import lombok.Data
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import lombok.Getter
 import org.hibernate.validator.constraints.UniqueElements
 
-
-@Data
 @Schema(description = "Sign up request DTO")
-class RegisterRequest (
+class RegisterRequest(
     @Schema(description = "Username", example = "Oleg")
     @UniqueElements(message = "Username already exists")
     @Size(min = 3, message = "Username must be at least 3 characters long")

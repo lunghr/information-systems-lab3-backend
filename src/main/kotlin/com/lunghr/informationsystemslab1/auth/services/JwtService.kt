@@ -4,14 +4,11 @@ import com.lunghr.informationsystemslab1.auth.model.ent.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.HashMap
-
 
 @Service
 class JwtService {

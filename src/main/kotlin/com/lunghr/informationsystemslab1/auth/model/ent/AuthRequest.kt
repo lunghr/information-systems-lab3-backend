@@ -3,12 +3,10 @@ package com.lunghr.informationsystemslab1.auth.model.ent
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import lombok.Data
 
 @Suppress("DEPRECATION")
-@Data
 @Schema(description = "Sign in request DTO")
-class AuthRequest (
+class AuthRequest(
 
     @Schema(description = "Username", example = "Oleg")
     @Size(min = 3, message = "Username must be at least 3 characters long")

@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-
 @Deprecated("This class is deprecated", ReplaceWith("Examples"))
 @RestController
 @RequestMapping("/example")
@@ -13,12 +12,12 @@ class Examples {
     private lateinit var userService: UserService
 
     @GetMapping
-    fun example() :String{
+    fun example(): String {
         return "Hello World"
     }
 
     @GetMapping("/admin")
-    fun exampleAdmin() :String{
+    fun exampleAdmin(): String {
         return "Hello Admin"
     }
 

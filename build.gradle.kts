@@ -5,6 +5,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.6"
     kotlin("plugin.jpa") version "1.9.25"
     id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
+    id("com.github.ben-manes.versions") version "0.48.0"
+    id("com.autonomousapps.dependency-analysis") version "1.20.0"
 }
 
 group = "com.lunghr"
@@ -33,15 +35,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.jsonwebtoken:jjwt:0.12.6")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
     implementation("io.springfox:springfox-swagger-ui:3.0.0")
-    compileOnly("org.projectlombok:lombok")
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
-    annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -56,5 +58,5 @@ kotlin {
 }
 
 tasks.test {
-    useJUnitPlatform() // Для запуска JUnit 5
+    useJUnitPlatform()
 }
