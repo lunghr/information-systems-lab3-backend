@@ -1,4 +1,4 @@
-package com.lunghr.informationsystemslab1.models
+package com.lunghr.informationsystemslab1.model
 
 class Coordinates(
     private val x: Int,

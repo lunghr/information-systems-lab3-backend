@@ -1,5 +1,5 @@
 
-package com.lunghr.informationsystemslab1.models
+package com.lunghr.informationsystemslab1.model
 
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
