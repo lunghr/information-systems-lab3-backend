@@ -44,6 +44,7 @@ class User(
     override fun getUsername(): String {
         return username
     }
+
     override fun isAccountNonExpired(): Boolean = true
     override fun isAccountNonLocked(): Boolean = true
     override fun isCredentialsNonExpired(): Boolean = true

@@ -12,8 +12,9 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
 
 @Entity
 @Table(name = "book_creatures")
@@ -28,30 +29,33 @@ class BookCreature(
     private var name: String,
 
     @OneToOne
-    @JoinColumn(name = "coordinates_id")
+    @JoinColumn(name = "coordinates_id", nullable = false)
     private var coordinates: Coordinates,
 
     @Column(name = "creation_date", nullable = false)
     private val creationDate: java.time.ZonedDateTime,
 
-    @Column(name = "age")
-    @Min(1)
+    @Column(name = "age", nullable = true)
+    @Positive
     private var age: Int,
 
     @Column(name = "creature_type", nullable = false)
     @Enumerated(EnumType.STRING)
+    @NotBlank
     private var creatureType: BookCreatureType,
 
     @ManyToOne
-    @JoinColumn(name = "ring")
-    private var ring: Ring,
-
-    @ManyToOne
-    @JoinColumn(name = "creature_location")
+    @JoinColumn(name = "creature_location", nullable = false)
+    @NotNull
     private var creatureLocation: MagicCity,
 
-    @Column(name = "attack_level")
-    @Min(1)
+    @ManyToOne
+    @JoinColumn(name = "ring", nullable = false)
+    @NotNull
+    private var ring: Ring,
+
+    @Column(name = "attack_level", nullable = true)
+    @Positive
     private var attackLevel: Float,
 
     @ManyToOne

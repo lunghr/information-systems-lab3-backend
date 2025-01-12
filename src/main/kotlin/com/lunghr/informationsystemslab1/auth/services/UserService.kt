@@ -3,12 +3,14 @@ package com.lunghr.informationsystemslab1.auth.services
 import com.lunghr.informationsystemslab1.auth.model.ent.Role
 import com.lunghr.informationsystemslab1.auth.model.ent.User
 import com.lunghr.informationsystemslab1.auth.model.repos.UserRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
 
 @Service
 class UserService {
+    @Autowired
     private lateinit var userRepository: UserRepository
 
     fun createUser(user: User): User =

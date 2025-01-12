@@ -11,8 +11,8 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
 
 @Entity
 @Table(name = "rings")
@@ -27,7 +27,7 @@ class Ring(
     var name: String,
 
     @Column(name = "weight", nullable = false)
-    @Min(1)
+    @Positive
     var weight: Int,
 
     @OneToMany(mappedBy = "ring")
