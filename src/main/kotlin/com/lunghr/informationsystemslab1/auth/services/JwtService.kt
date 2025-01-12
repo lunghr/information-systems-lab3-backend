@@ -4,6 +4,7 @@ import com.lunghr.informationsystemslab1.auth.model.ent.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -48,6 +49,11 @@ class JwtService {
             .let(resolver)
 
     fun getUsername(token: String): String = getClaim(token) { it.subject }
+
+    fun extractToken(token:String): String = token.removePrefix("Bearer ")
+
+    fun getTokenFromHeader(request: HttpServletRequest): String? =
+        request.getHeader("Authorization")?.takeIf { it.startsWith("Bearer ") }?.let {extractToken(it)}
 
     fun getExpiration(token: String): Date = getClaim(token) { it.expiration }
 

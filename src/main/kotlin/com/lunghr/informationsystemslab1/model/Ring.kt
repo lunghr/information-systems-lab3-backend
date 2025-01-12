@@ -35,5 +35,5 @@ class Ring(
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private var user: User
+    var user: User
 )

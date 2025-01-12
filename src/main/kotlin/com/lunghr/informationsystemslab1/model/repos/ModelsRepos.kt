@@ -19,7 +19,7 @@ interface CoordinatesRepository : JpaRepository<Coordinates, Long> {
 @Repository
 interface RingRepository : JpaRepository<Ring, Long> {
     fun findByUserId(userId: Long): List<Ring>?
-//    fun fndByCreaturesId(creaturesId: Long): Ring?
+    fun findByNameAndUserId(name: String, id: Long): Ring?
 }
 
 @Repository

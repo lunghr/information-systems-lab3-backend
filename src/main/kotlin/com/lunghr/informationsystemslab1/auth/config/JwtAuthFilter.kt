@@ -23,7 +23,7 @@ class JwtAuthFilter(
         filterChain: FilterChain
     ) {
         // Get JWT token from header
-        val jwt = request.getHeader("Authorization")?.takeIf { it.startsWith("Bearer ") }?.removePrefix("Bearer ")
+        val jwt = jwtService.getTokenFromHeader(request)
         // Get username from JWT token
         val username = jwt?.let { jwtService.getUsername(it) }
         // If username is not null and there is no authentication in the context
