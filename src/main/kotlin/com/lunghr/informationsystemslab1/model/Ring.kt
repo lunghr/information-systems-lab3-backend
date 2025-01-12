@@ -20,7 +20,7 @@ class Ring(
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int,
+    val id: Long = 0,
 
     @Column(name = "name", nullable = false)
     @NotBlank
@@ -31,7 +31,7 @@ class Ring(
     var weight: Int,
 
     @OneToMany(mappedBy = "ring")
-    var creatures: List<BookCreature>,
+    var creatures: List<BookCreature> = emptyList(),
 
     @ManyToOne
     @JoinColumn(name = "user_id")

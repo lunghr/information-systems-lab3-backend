@@ -30,5 +30,4 @@ class Coordinates(
     @Column(name = "y", nullable = false)
     @Min((-376).toLong())
     private val y: Double,
-
 )

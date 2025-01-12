@@ -1,4 +1,4 @@
-package com.lunghr.informationsystemslab1.auth.model.repos
+package com.lunghr.informationsystemslab1.model.repos
 
 import com.lunghr.informationsystemslab1.model.BookCreature
 import com.lunghr.informationsystemslab1.model.Coordinates
