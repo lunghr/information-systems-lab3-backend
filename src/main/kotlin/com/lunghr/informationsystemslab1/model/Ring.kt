@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
@@ -28,10 +27,10 @@ class Ring(
 
     @Column(name = "weight", nullable = false)
     @Positive
-    var weight: Int,
+    var weight: Int = 0,
 
-    @OneToMany(mappedBy = "ring")
-    var creatures: List<BookCreature> = emptyList(),
+    @Column(name = "ownerless", nullable = false)
+    var ownerless: Boolean = true,
 
     @ManyToOne
     @JoinColumn(name = "user_id")

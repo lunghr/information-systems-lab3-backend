@@ -22,9 +22,9 @@ class MagicCity(
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int,
+    val id: Long = 0L,
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     @NotBlank
     var name: String,
 
@@ -52,9 +52,9 @@ class MagicCity(
     var populationDensity: Double,
 
     @OneToMany(mappedBy = "creatureLocation")
-    var creatures: List<BookCreature>,
+    var creatures: List<BookCreature> = emptyList(),
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private var user: User
+    var user: User
 )

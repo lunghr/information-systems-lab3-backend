@@ -22,43 +22,43 @@ class BookCreature(
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long,
+    val id: Long = 0L,
 
     @Column(name = "name", nullable = false)
     @NotBlank
-    private var name: String,
+    var name: String,
 
     @OneToOne
     @JoinColumn(name = "coordinates_id", nullable = false)
-    private var coordinates: Coordinates,
+    var coordinates: Coordinates,
 
     @Column(name = "creation_date", nullable = false)
-    private val creationDate: java.time.ZonedDateTime,
+    val creationDate: java.time.ZonedDateTime = java.time.ZonedDateTime.now(),
 
     @Column(name = "age", nullable = true)
     @Positive
-    private var age: Int,
+    var age: Int,
 
     @Column(name = "creature_type", nullable = false)
     @Enumerated(EnumType.STRING)
     @NotBlank
-    private var creatureType: BookCreatureType,
+    var creatureType: BookCreatureType,
 
     @ManyToOne
     @JoinColumn(name = "creature_location", nullable = false)
     @NotNull
-    private var creatureLocation: MagicCity,
+    var creatureLocation: MagicCity,
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "ring", nullable = false)
     @NotNull
-    private var ring: Ring,
+    var ring: Ring,
 
     @Column(name = "attack_level", nullable = true)
     @Positive
-    private var attackLevel: Float,
+    var attackLevel: Float,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private var user: User
+    var user: User
 )

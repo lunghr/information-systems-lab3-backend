@@ -2,7 +2,8 @@ package com.lunghr.informationsystemslab1.controllers
 
 import com.lunghr.informationsystemslab1.dto.RingDto
 import com.lunghr.informationsystemslab1.dto.RingResponseDto
-import com.lunghr.informationsystemslab1.service.ModelsService
+import com.lunghr.informationsystemslab1.service.RingService
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,11 +14,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/ring")
-class ModelsController @Autowired constructor(
-    private val modelsService: ModelsService
+@Tag(name = "Rings")
+class RingController @Autowired constructor(
+    private val ringService: RingService
 ) {
-    @PostMapping
+
+    @PostMapping("/create")
     fun createRing(@RequestHeader("Authorization") token: String, @Valid @RequestBody ring: RingDto): RingResponseDto {
-        return modelsService.saveRing(ring, token)
+        return ringService.createRing(ring, token)
     }
 }

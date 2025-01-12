@@ -50,10 +50,10 @@ class JwtService {
 
     fun getUsername(token: String): String = getClaim(token) { it.subject }
 
-    fun extractToken(token:String): String = token.removePrefix("Bearer ")
+    fun extractToken(token: String): String = token.removePrefix("Bearer ")
 
     fun getTokenFromHeader(request: HttpServletRequest): String? =
-        request.getHeader("Authorization")?.takeIf { it.startsWith("Bearer ") }?.let {extractToken(it)}
+        request.getHeader("Authorization")?.takeIf { it.startsWith("Bearer ") }?.let { extractToken(it) }
 
     fun getExpiration(token: String): Date = getClaim(token) { it.expiration }
 
