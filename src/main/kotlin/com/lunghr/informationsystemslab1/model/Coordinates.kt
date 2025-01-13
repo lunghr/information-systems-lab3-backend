@@ -18,9 +18,9 @@ class Coordinates(
 
     @Column(name = "x", nullable = false)
     @Max(506)
-    private val x: Int,
+    var x: Int,
 
     @Column(name = "y", nullable = false)
     @Min((-376).toLong())
-    private val y: Double,
+    var y: Double,
 )

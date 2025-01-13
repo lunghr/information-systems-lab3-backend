@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.service
 
+import com.lunghr.informationsystemslab1.auth.model.ent.Role
 import com.lunghr.informationsystemslab1.auth.services.JwtService
 import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.BookCreatureDto
@@ -9,6 +10,7 @@ import com.lunghr.informationsystemslab1.model.BookCreatureType
 import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureNotFoundException
+import com.lunghr.informationsystemslab1.model.exceptions.RingAlreadyOwnedException
 import com.lunghr.informationsystemslab1.model.repos.BookCreatureRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -63,34 +65,37 @@ class BookCreatureService @Autowired constructor(
     fun deleteBookCreature(id: Long, token: String) {
         val bookCreature = bookCreatureRepository.findBookCreaturesById(id)
             ?: throw BookCreatureNotFoundException("BookCreature with id $id not found")
-        if (bookCreature.user.username != jwtService.getUsername(jwtService.extractToken(token))) {
+        println(userService.findAdmins().contains(bookCreature.user))
+        println(userService.findAdmins())
+        println(bookCreature.user)
+        val authUser = jwtService.getUsername(jwtService.extractToken(token))
+        if (bookCreature.user.username != authUser && userService.getUserByUsername(authUser).role != Role.ROLE_ADMIN) {
             throw AccessDeniedException("You are not allowed to delete this book creature")
         }
         bookCreatureRepository.delete(bookCreature)
         coordinatesService.deleteCoordinates(bookCreature.coordinates.id)
-        ringService.deleteRingById(bookCreature.ring.id, token)
         ringService.grabRingFromCreature(bookCreature.ring)
-        magicCityService.deleteMagicCityById(bookCreature.creatureLocation.id, token)
-//        try {
-//            bookCreatureRepository.delete(bookCreature)
-//            try {
-//                coordinatesService.deleteCoordinates(bookCreature.coordinates.id)
-//            } catch (e: Exception) {
-//                throw e
-//            }
-//            try {
-//                ringService.deleteRingById(bookCreature.ring.id, token)
-//            } catch (e: Exception) {
-//                ringService.grabRingFromCreature(bookCreature.ring)
-//                throw e
-//            }
-//            try {
-//                magicCityService.deleteMagicCityById(bookCreature.creatureLocation.id, token)
-//            } catch (e: Exception) {
-//                throw e
-//            }
-//        } catch (e: Exception) {
-//            throw e
-//        }
-//    }
+    }
+
+    fun updateBookCreature(id: Long, bookCreatureDto: BookCreatureDto, token: String): BookCreatureResponseDto {
+        val bookCreature = bookCreatureRepository.findBookCreaturesById(id)
+            ?: throw BookCreatureNotFoundException("BookCreature with id $id not found")
+        val authUser = jwtService.getUsername(jwtService.extractToken(token))
+        if (bookCreature.user.username != authUser && userService.getUserByUsername(authUser).role != Role.ROLE_ADMIN) {
+            throw AccessDeniedException("You are not allowed to update this book creature")
+        }
+        bookCreature.name = bookCreatureDto.name
+        bookCreature.coordinates =
+            coordinatesService.updateCoordinates(bookCreature.coordinates.id, bookCreatureDto.coordinates)
+        bookCreature.age = bookCreatureDto.age
+        bookCreature.creatureType = BookCreatureType.valueOf(bookCreatureDto.creatureType)
+        bookCreature.creatureLocation =
+            magicCityService.updateMagicCity(bookCreature.creatureLocation.id, bookCreatureDto.creatureLocation, token)
+        if (bookCreatureRepository.findByRingId(bookCreature.ring.id)?.let { it.id != bookCreature.id } == true)
+            throw RingAlreadyOwnedException("Ring ${bookCreature.ring.name} already has an owner")
+        bookCreature.ring = ringService.updateRing(bookCreature.ring.id, bookCreatureDto.ring, token)
+        bookCreature.attackLevel = bookCreatureDto.attackLevel
+        bookCreatureRepository.save(bookCreature)
+        return createBookCreatureResponseDtoObject(bookCreature)
+    }
 }

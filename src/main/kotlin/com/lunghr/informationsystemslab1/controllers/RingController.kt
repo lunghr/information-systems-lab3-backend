@@ -34,4 +34,14 @@ class RingController @Autowired constructor(
     fun deleteRing(@RequestHeader("Authorization") token: String, @PathVariable id: Long) {
         ringService.deleteRingById(id, token)
     }
+
+    @Transactional
+    @PostMapping("/update/{id}")
+    fun updateRing(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long,
+        @Valid @RequestBody ring: RingDto
+    ): RingResponseDto {
+        return ringService.createRingResponseDtoObject(ringService.updateRing(id, ring, token))
+    }
 }

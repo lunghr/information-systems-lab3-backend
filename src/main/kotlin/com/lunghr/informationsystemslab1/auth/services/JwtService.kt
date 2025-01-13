@@ -21,7 +21,7 @@ class JwtService {
             val customUserDetails = userDetails
             claims["id"] = customUserDetails.getId()
             claims["username"] = customUserDetails.username
-            claims["role"] = customUserDetails.getRole()
+            claims["role"] = customUserDetails.role
         }
         println("Token generated")
         return Jwts.builder()
@@ -49,6 +49,8 @@ class JwtService {
             .let(resolver)
 
     fun getUsername(token: String): String = getClaim(token) { it.subject }
+
+    fun getRole(token: String): String = getClaim(token) { it["role"] as String }
 
     fun extractToken(token: String): String = token.removePrefix("Bearer ")
 

@@ -18,7 +18,7 @@ class RingResponseDto(
 @Schema(description = "Book creature Response DTO")
 class BookCreatureResponseDto(
     @Schema(description = "Book creature ID", example = "1")
-    val id: Long,
+    var id: Long,
     @Schema(description = "Book creature name", example = "creature")
     val name: String,
     @Schema(description = "Coordinates")

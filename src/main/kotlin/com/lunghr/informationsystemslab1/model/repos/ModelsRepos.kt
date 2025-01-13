@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BookCreatureRepository : JpaRepository<BookCreature, Long> {
-    fun findByUserId(userId: Long): List<BookCreature>?
+    fun findByRingId(id: Long): BookCreature?
     fun findBookCreaturesById(id: Long): BookCreature?
     fun findByName(name: String): BookCreature?
     fun findByNameAndUserId(name: String, id: Long): BookCreature?

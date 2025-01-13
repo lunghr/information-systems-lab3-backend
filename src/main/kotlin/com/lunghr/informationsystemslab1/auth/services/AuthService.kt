@@ -1,9 +1,9 @@
 package com.lunghr.informationsystemslab1.auth.services
 
-import com.lunghr.informationsystemslab1.auth.model.ent.AuthRequest
-import com.lunghr.informationsystemslab1.auth.model.ent.RegisterRequest
+import com.lunghr.informationsystemslab1.auth.model.dto.AuthRequest
+import com.lunghr.informationsystemslab1.auth.model.dto.AuthResponse
+import com.lunghr.informationsystemslab1.auth.model.dto.RegisterRequest
 import com.lunghr.informationsystemslab1.auth.model.ent.Role
-import com.lunghr.informationsystemslab1.auth.model.ent.TokenResponse
 import com.lunghr.informationsystemslab1.auth.model.ent.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationManager
@@ -22,7 +22,7 @@ class AuthService {
     @Autowired
     private lateinit var authenticationManager: AuthenticationManager
 
-    fun register(request: RegisterRequest): TokenResponse {
+    fun register(request: RegisterRequest): AuthResponse {
         val user = User(
             id = 0L, // This is a plug value pupupupu
             username = request.username,
@@ -32,18 +32,27 @@ class AuthService {
 
         userService.createUser(user)
         println("User created")
-        return TokenResponse(jwtService.generateToken(user))
+        return AuthResponse(jwtService.generateToken(user), user.role)
     }
 
-    fun login(request: AuthRequest): TokenResponse {
+    fun login(request: AuthRequest): AuthResponse {
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(request.username, request.password)
         )
         val user = userService.userDetailsService().loadUserByUsername(request.username) as User
-        return TokenResponse(jwtService.generateToken(user))
+        return AuthResponse(jwtService.generateToken(user), user.role)
     }
 
     fun getUsernameFromToken(token: String): String {
         return jwtService.getUsername(jwtService.extractToken(token))
+    }
+
+    fun getRoleFromToken(token: String): String {
+        return jwtService.getRole(jwtService.extractToken(token))
+    }
+
+    fun refreshToken(token: String): String {
+        userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token)))
+        return jwtService.generateToken(userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))))
     }
 }

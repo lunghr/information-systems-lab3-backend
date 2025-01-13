@@ -39,7 +39,7 @@ class MagicCity(
     var population: Int,
 
     @Column(name = "established_data")
-    val establishedData: java.time.LocalDateTime,
+    var establishedData: java.time.LocalDateTime,
 
     @Column(name = "governor", nullable = true)
     @Enumerated(EnumType.STRING)

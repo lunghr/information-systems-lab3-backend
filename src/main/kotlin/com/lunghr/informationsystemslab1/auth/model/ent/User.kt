@@ -27,8 +27,7 @@ class User(
     private var password: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private var role: Role = Role.ROLE_USER
+    @Column(name = "role", nullable = false) var role: Role = Role.ROLE_USER
 ) : UserDetails {
     // Return list of roles
     override fun getAuthorities(): Collection<GrantedAuthority> {
@@ -52,13 +51,5 @@ class User(
 
     fun getId(): Long {
         return id
-    }
-
-    fun getRole(): Role {
-        return role
-    }
-
-    fun setRole(newRole: Role) {
-        role = newRole
     }
 }

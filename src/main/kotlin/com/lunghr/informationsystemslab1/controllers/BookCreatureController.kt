@@ -37,4 +37,14 @@ class BookCreatureController @Autowired constructor(
     fun deleteBookCreature(@RequestHeader("Authorization") token: String, @PathVariable id: Long) {
         bookCreatureService.deleteBookCreature(id, token)
     }
+
+    @Transactional
+    @PostMapping("/update/{id}")
+    fun updateBookCreature(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long,
+        @Valid @RequestBody bookCreature: BookCreatureDto
+    ): BookCreatureResponseDto {
+        return bookCreatureService.updateBookCreature(id, bookCreature, token)
+    }
 }

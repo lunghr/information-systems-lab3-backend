@@ -22,4 +22,13 @@ class CoordinatesService @Autowired constructor(
     fun deleteCoordinates(id: Long) {
         coordinatesRepository.delete(coordinatesRepository.findById(id).orElseThrow { RuntimeException("Coordinates not found") })
     }
+
+    fun updateCoordinates(id: Long, coordinates: CoordinatesDto): Coordinates {
+        return coordinatesRepository.save(
+            coordinatesRepository.findById(id).orElseThrow { RuntimeException("Coordinates not found") }.also { coordinatesEntity ->
+                coordinatesEntity.x = coordinates.x
+                coordinatesEntity.y = coordinates.y
+            }
+        )
+    }
 }

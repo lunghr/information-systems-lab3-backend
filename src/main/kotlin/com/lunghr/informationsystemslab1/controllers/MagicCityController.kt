@@ -44,4 +44,14 @@ class MagicCityController @Autowired constructor(
     fun getAllCreatures(@PathVariable id: Long): List<BookCreature> {
         return magicCityService.getAllCreaturesInCity(id)
     }
+
+    @Transactional
+    @PostMapping("/update-city/{id}")
+    fun updateCity(
+        @RequestHeader("Authorization") token: String,
+        @PathVariable id: Long,
+        @Valid @RequestBody city: MagicCityDto
+    ): MagicCityResponseDto {
+        return magicCityService.createMagicCityResponseDtoObject(magicCityService.updateMagicCity(id, city, token))
+    }
 }

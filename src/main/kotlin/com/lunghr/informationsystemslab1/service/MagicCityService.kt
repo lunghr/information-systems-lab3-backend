@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.service
 
+import com.lunghr.informationsystemslab1.auth.model.ent.Role
 import com.lunghr.informationsystemslab1.auth.services.JwtService
 import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.MagicCityDto
@@ -69,12 +70,31 @@ class MagicCityService @Autowired constructor(
 
     fun deleteMagicCityById(id: Long, token: String) {
         magicCityRepository.findMagicCityById(id)?.let { magicCity ->
-            if (magicCity.user.username != jwtService.getUsername(jwtService.extractToken(token))) {
+            val authUser = jwtService.getUsername(jwtService.extractToken(token))
+            if (magicCity.user.username != authUser && userService.getUserByUsername(authUser).role != Role.ROLE_ADMIN) {
                 throw AccessDeniedException("You are not allowed to delete this city")
             } else if (magicCity.creatures.isNotEmpty()) {
                 throw AccessDeniedException("You are not allowed to delete this city because it has creatures")
             }
             magicCityRepository.delete(magicCity)
         } ?: throw CityNotFoundException("City with id $id not found")
+    }
+
+    fun updateMagicCity(id: Long, magicCityDto: MagicCityDto, token: String): MagicCity {
+        return magicCityRepository.findMagicCityById(id)
+            ?.let { magicCity ->
+                val authUser = jwtService.getUsername(jwtService.extractToken(token))
+                if (magicCity.user.username != authUser && userService.getUserByUsername(authUser).role != Role.ROLE_ADMIN) {
+                    throw AccessDeniedException("You are not allowed to update this city, because you are not the owner")
+                }
+                magicCity.name = magicCityDto.name
+                magicCity.area = magicCityDto.area
+                magicCity.population = magicCityDto.population
+                magicCity.establishedData = magicCityDto.establishedData
+                magicCity.governor = BookCreatureType.valueOf(magicCityDto.governor)
+                magicCity.capital = magicCityDto.capital
+                magicCity.populationDensity = magicCityDto.populationDensity
+                magicCityRepository.save(magicCity)
+            } ?: addCreatureToCity(magicCityDto, token)
     }
 }

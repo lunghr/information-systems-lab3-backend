@@ -8,6 +8,7 @@ import com.lunghr.informationsystemslab1.model.exceptions.CityNotFoundException
 import com.lunghr.informationsystemslab1.model.exceptions.RingAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.RingAlreadyOwnedException
 import com.lunghr.informationsystemslab1.model.exceptions.RingNotFoundException
+import com.lunghr.informationsystemslab1.model.exceptions.UserNotFoundException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -52,6 +53,11 @@ class ExceptionHandler {
 
     @ExceptionHandler(RingNotFoundException::class)
     fun handleRingNotFoundException(e: RingNotFoundException): ResponseEntity<String> {
+        return ResponseEntity.status(404).body(e.message)
+    }
+
+    @ExceptionHandler(UserNotFoundException::class)
+    fun handleUserNotFoundException(e: UserNotFoundException): ResponseEntity<String> {
         return ResponseEntity.status(404).body(e.message)
     }
 }
