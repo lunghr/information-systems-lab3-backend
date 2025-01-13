@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository
 interface UserRepository : JpaRepository<User, Long> {
     fun findUserByUsername(username: String): User?
     fun findUserByRole(role: Role): List<User>
+    fun findFirstById(id: Long): User?
 }

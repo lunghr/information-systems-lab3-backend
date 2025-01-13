@@ -11,6 +11,8 @@ class RingResponseDto(
     val name: String,
     @Schema(description = "Weight", example = "1")
     val weight: Int,
+    @Schema(description = "ownerless", example = "false")
+    val ownerless: Boolean,
     @Schema(description = "Owner user ID", example = "2")
     val userId: Long
 )

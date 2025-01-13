@@ -9,11 +9,13 @@ import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -46,5 +48,44 @@ class BookCreatureController @Autowired constructor(
         @Valid @RequestBody bookCreature: BookCreatureDto
     ): BookCreatureResponseDto {
         return bookCreatureService.updateBookCreature(id, bookCreature, token)
+    }
+
+    @Transactional
+    @DeleteMapping("/destroy-elf-cities")
+    fun destroyElfCities(@RequestHeader("Authorization") token: String) {
+        bookCreatureService.destroyElfCities(token)
+    }
+
+    @Transactional
+    @PostMapping("/relocate-hobbits")
+    fun relocateHobbits(@RequestHeader("Authorization") token: String) {
+        bookCreatureService.relocateCreaturesToMordor(token)
+    }
+
+    @Transactional
+    @DeleteMapping("/delete-by-ring/{ringId}")
+    fun deleteBookCreaturesByRing(@RequestHeader("Authorization") token: String, @PathVariable ringId: Long) {
+        bookCreatureService.deleteCreatureByRingId(ringId, token)
+    }
+
+    @Transactional
+    @GetMapping("/get-oldest")
+    fun getOldestBookCreature(): BookCreatureResponseDto {
+        return bookCreatureService.getOldestCreature()
+    }
+
+    @GetMapping("/by-name-part")
+    fun getBookCreaturesByNamePart(@RequestParam name: String): List<BookCreatureResponseDto> {
+        return bookCreatureService.getBookCreatureByNamePart(name)
+    }
+
+    @GetMapping("/{id}")
+    fun getBookCreatureById(@PathVariable id: Long): BookCreatureResponseDto {
+        return bookCreatureService.getBookCreatureById(id)
+    }
+
+    @GetMapping("/all")
+    fun getAllBookCreatures(): List<BookCreatureResponseDto> {
+        return bookCreatureService.getAllBookCreatures()
     }
 }

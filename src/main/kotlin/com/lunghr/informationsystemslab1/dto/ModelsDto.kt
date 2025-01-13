@@ -28,13 +28,13 @@ data class BookCreatureDto(
     @NotBlank(message = "Creature type is required")
     val creatureType: String,
 
-    @Schema(description = "ring DTO", required = true)
+    @Schema(description = "ring Id", required = true)
     @NotNull(message = "Ring is required")
-    val ring: RingDto,
+    val ringId: Long,
 
-    @Schema(description = "magic city DTO", required = true)
+    @Schema(description = "magic city ID", required = true)
     @NotNull(message = "Magic city is required")
-    val creatureLocation: MagicCityDto,
+    val creatureLocationId: Long,
 
     @Schema(description = "attack level", example = "1.0", minimum = ">0", required = false)
     val attackLevel: Float,

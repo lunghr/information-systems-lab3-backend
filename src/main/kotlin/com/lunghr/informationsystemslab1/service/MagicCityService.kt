@@ -12,6 +12,7 @@ import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.CityAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.CityNotFoundException
 import com.lunghr.informationsystemslab1.model.repos.MagicCityRepository
+import com.lunghr.informationsystemslab1.websocket.NotificationHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -19,7 +20,8 @@ import org.springframework.stereotype.Service
 class MagicCityService @Autowired constructor(
     private val magicCityRepository: MagicCityRepository,
     private val jwtService: JwtService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val notificationHandler: NotificationHandler
 ) {
 
     fun createMagicCityObject(magicCityDto: MagicCityDto, token: String): MagicCity {
@@ -57,15 +59,25 @@ class MagicCityService @Autowired constructor(
 
     fun createMagicCity(magicCityDto: MagicCityDto, token: String): MagicCityResponseDto {
         val magicCity = createMagicCityObject(magicCityDto, token)
+        notificationHandler.broadcast("City ${magicCity.name} has been created")
         return createMagicCityResponseDtoObject(magicCity)
     }
 
-    fun addCreatureToCity(magicCityDto: MagicCityDto, token: String): MagicCity {
-        return magicCityRepository.findByName(magicCityDto.name) ?: createMagicCityObject(magicCityDto, token)
+    fun addCreatureToCity(magicCityID: Long, token: String): MagicCity {
+        return magicCityRepository.findMagicCityById(magicCityID) ?: throw CityNotFoundException("City not found")
     }
 
     fun getAllCreaturesInCity(id: Long): List<BookCreature> {
         return magicCityRepository.findMagicCityById(id)?.creatures ?: throw CityNotFoundException("City not found")
+    }
+
+    fun getAllMagicCities(): List<MagicCityResponseDto> {
+        return magicCityRepository.findAll().map { city -> createMagicCityResponseDtoObject(city) }
+    }
+
+    fun getMagicCityById(id: Long): MagicCityResponseDto {
+        return magicCityRepository.findMagicCityById(id)?.let { city -> createMagicCityResponseDtoObject(city) }
+            ?: throw CityNotFoundException("City with id $id not found")
     }
 
     fun deleteMagicCityById(id: Long, token: String) {
@@ -76,6 +88,7 @@ class MagicCityService @Autowired constructor(
             } else if (magicCity.creatures.isNotEmpty()) {
                 throw AccessDeniedException("You are not allowed to delete this city because it has creatures")
             }
+            notificationHandler.broadcast("City ${magicCity.name} has been deleted")
             magicCityRepository.delete(magicCity)
         } ?: throw CityNotFoundException("City with id $id not found")
     }
@@ -94,7 +107,32 @@ class MagicCityService @Autowired constructor(
                 magicCity.governor = BookCreatureType.valueOf(magicCityDto.governor)
                 magicCity.capital = magicCityDto.capital
                 magicCity.populationDensity = magicCityDto.populationDensity
+                notificationHandler.broadcast("City ${magicCity.name} has been updated")
                 magicCityRepository.save(magicCity)
-            } ?: addCreatureToCity(magicCityDto, token)
+            } ?: throw CityNotFoundException("City with id $id not found")
+    }
+
+    fun findElfCities(): List<MagicCity> {
+        return magicCityRepository.findAllByGovernor(BookCreatureType.ELF)
+            ?: throw CityNotFoundException("City not found")
+    }
+
+    fun createMordor(token: String): MagicCity {
+        return magicCityRepository.findByName("Mordor") ?: createMagicCityObject(
+            MagicCityDto(
+                name = "Mordor",
+                area = 1000.0,
+                population = 1000,
+                governor = BookCreatureType.GOLLUM.toString(),
+                capital = true,
+                populationDensity = 1.0,
+                establishedData = java.time.LocalDateTime.now()
+            ),
+            token
+        )
+    }
+
+    fun addCreatureToMordor(token: String): MagicCity {
+        return magicCityRepository.findByName("Mordor") ?: createMordor(token)
     }
 }

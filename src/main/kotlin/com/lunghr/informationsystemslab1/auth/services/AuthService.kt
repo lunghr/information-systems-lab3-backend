@@ -47,6 +47,10 @@ class AuthService {
         return jwtService.getUsername(jwtService.extractToken(token))
     }
 
+    fun getUsernameFromId(id: Long): String {
+        return userService.getUserById(id).username
+    }
+
     fun getRoleFromToken(token: String): String {
         return jwtService.getRole(jwtService.extractToken(token))
     }

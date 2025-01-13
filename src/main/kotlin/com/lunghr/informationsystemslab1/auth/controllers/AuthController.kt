@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -39,6 +40,12 @@ class AuthController {
     @GetMapping("/username")
     fun getUsername(@RequestHeader("Authorization") token: String): String {
         return authService.getUsernameFromToken(token)
+    }
+
+    @Operation(summary = "Get username from id")
+    @GetMapping("/username/{id}")
+    fun getUsernameById(@PathVariable id: Long): String {
+        return authService.getUsernameFromId(id)
     }
 
     @Operation(summary = "Get user role")

@@ -24,6 +24,8 @@ class UserService {
 
     fun findAdmins(): List<User> = userRepository.findUserByRole(Role.ROLE_ADMIN)
 
+    fun getUserById(id: Long): User = userRepository.findFirstById(id) ?: throw UserNotFoundException("User not found")
+
     fun makeAdmin(username: String) {
         userRepository.findUserByUsername(username)?.let { user ->
             user.role = Role.ROLE_ADMIN

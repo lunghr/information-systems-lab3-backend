@@ -40,9 +40,9 @@ class MagicCityController @Autowired constructor(
         magicCityService.deleteMagicCityById(id, token)
     }
 
-    @GetMapping("/all-creatures/{id}")
-    fun getAllCreatures(@PathVariable id: Long): List<BookCreature> {
-        return magicCityService.getAllCreaturesInCity(id)
+    @GetMapping("/all-creatures-from-city/{cityId}")
+    fun getAllCreatures(@PathVariable cityId: Long): List<BookCreature> {
+        return magicCityService.getAllCreaturesInCity(cityId)
     }
 
     @Transactional
@@ -53,5 +53,15 @@ class MagicCityController @Autowired constructor(
         @Valid @RequestBody city: MagicCityDto
     ): MagicCityResponseDto {
         return magicCityService.createMagicCityResponseDtoObject(magicCityService.updateMagicCity(id, city, token))
+    }
+
+    @GetMapping("/all")
+    fun getAllCities(): List<MagicCityResponseDto> {
+        return magicCityService.getAllMagicCities()
+    }
+
+    @GetMapping("/{id}")
+    fun getCity(@PathVariable id: Long): MagicCityResponseDto {
+        return magicCityService.getMagicCityById(id)
     }
 }
