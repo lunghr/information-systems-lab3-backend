@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface BookCreatureRepository : JpaRepository<BookCreature, Long> {
     fun findByUserId(userId: Long): List<BookCreature>?
+    fun findBookCreaturesById(id: Long): BookCreature?
     fun findByName(name: String): BookCreature?
     fun findByNameAndUserId(name: String, id: Long): BookCreature?
 }
@@ -18,14 +19,15 @@ interface BookCreatureRepository : JpaRepository<BookCreature, Long> {
 interface CoordinatesRepository : JpaRepository<Coordinates, Long>
 @Repository
 interface RingRepository : JpaRepository<Ring, Long> {
-    fun findByUserId(userId: Long): List<Ring>?
+    fun findRingById(id: Long): Ring?
     fun findByName(name: String): Ring?
     fun findByNameAndUserId(name: String, id: Long): Ring?
 }
 
 @Repository
 interface MagicCityRepository : JpaRepository<MagicCity, Long> {
-    fun findByUserId(userId: Long): List<MagicCity>?
+    fun findMagicCityById(id: Long): MagicCity?
+
     fun findByName(name: String): MagicCity?
     fun findByNameAndUserId(name: String, id: Long): MagicCity?
 }

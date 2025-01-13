@@ -4,8 +4,10 @@ import com.lunghr.informationsystemslab1.auth.services.JwtService
 import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.MagicCityDto
 import com.lunghr.informationsystemslab1.dto.MagicCityResponseDto
+import com.lunghr.informationsystemslab1.model.BookCreature
 import com.lunghr.informationsystemslab1.model.BookCreatureType
 import com.lunghr.informationsystemslab1.model.MagicCity
+import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.CityAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.CityNotFoundException
 import com.lunghr.informationsystemslab1.model.repos.MagicCityRepository
@@ -51,17 +53,28 @@ class MagicCityService @Autowired constructor(
             userId = magicCity.user.getId()
         )
     }
+
     fun createMagicCity(magicCityDto: MagicCityDto, token: String): MagicCityResponseDto {
         val magicCity = createMagicCityObject(magicCityDto, token)
         return createMagicCityResponseDtoObject(magicCity)
     }
 
-    fun getMagicCityByName(magicCityDto: MagicCityDto): MagicCity {
-        return magicCityRepository.findByName(magicCityDto.name)
-            ?: throw CityNotFoundException("City ${magicCityDto.name} not found")
-    }
-
     fun addCreatureToCity(magicCityDto: MagicCityDto, token: String): MagicCity {
         return magicCityRepository.findByName(magicCityDto.name) ?: createMagicCityObject(magicCityDto, token)
+    }
+
+    fun getAllCreaturesInCity(id: Long): List<BookCreature> {
+        return magicCityRepository.findMagicCityById(id)?.creatures ?: throw CityNotFoundException("City not found")
+    }
+
+    fun deleteMagicCityById(id: Long, token: String) {
+        magicCityRepository.findMagicCityById(id)?.let { magicCity ->
+            if (magicCity.user.username != jwtService.getUsername(jwtService.extractToken(token))) {
+                throw AccessDeniedException("You are not allowed to delete this city")
+            } else if (magicCity.creatures.isNotEmpty()) {
+                throw AccessDeniedException("You are not allowed to delete this city because it has creatures")
+            }
+            magicCityRepository.delete(magicCity)
+        } ?: throw CityNotFoundException("City with id $id not found")
     }
 }

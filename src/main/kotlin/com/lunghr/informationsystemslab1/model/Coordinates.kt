@@ -14,8 +14,7 @@ import jakarta.validation.constraints.Min
 class Coordinates(
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long = 0L,
+    @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0L,
 
     @Column(name = "x", nullable = false)
     @Max(506)

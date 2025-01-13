@@ -18,4 +18,8 @@ class CoordinatesService @Autowired constructor(
             )
         )
     }
+
+    fun deleteCoordinates(id: Long) {
+        coordinatesRepository.delete(coordinatesRepository.findById(id).orElseThrow { RuntimeException("Coordinates not found") })
+    }
 }

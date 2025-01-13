@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.model
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.lunghr.informationsystemslab1.auth.model.ent.User
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -52,6 +53,7 @@ class MagicCity(
     var populationDensity: Double,
 
     @OneToMany(mappedBy = "creatureLocation")
+    @JsonManagedReference
     var creatures: List<BookCreature> = emptyList(),
 
     @ManyToOne

@@ -42,4 +42,8 @@ class AuthService {
         val user = userService.userDetailsService().loadUserByUsername(request.username) as User
         return TokenResponse(jwtService.generateToken(user))
     }
+
+    fun getUsernameFromToken(token: String): String {
+        return jwtService.getUsername(jwtService.extractToken(token))
+    }
 }

@@ -6,7 +6,9 @@ import com.lunghr.informationsystemslab1.dto.BookCreatureDto
 import com.lunghr.informationsystemslab1.dto.BookCreatureResponseDto
 import com.lunghr.informationsystemslab1.model.BookCreature
 import com.lunghr.informationsystemslab1.model.BookCreatureType
+import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureAlreadyExistsException
+import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureNotFoundException
 import com.lunghr.informationsystemslab1.model.repos.BookCreatureRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -57,4 +59,38 @@ class BookCreatureService @Autowired constructor(
         val bookCreature = createBookCreatureObjects(bookCreatureDto, token)
         return createBookCreatureResponseDtoObject(bookCreature)
     }
+
+    fun deleteBookCreature(id: Long, token: String) {
+        val bookCreature = bookCreatureRepository.findBookCreaturesById(id)
+            ?: throw BookCreatureNotFoundException("BookCreature with id $id not found")
+        if (bookCreature.user.username != jwtService.getUsername(jwtService.extractToken(token))) {
+            throw AccessDeniedException("You are not allowed to delete this book creature")
+        }
+        bookCreatureRepository.delete(bookCreature)
+        coordinatesService.deleteCoordinates(bookCreature.coordinates.id)
+        ringService.deleteRingById(bookCreature.ring.id, token)
+        ringService.grabRingFromCreature(bookCreature.ring)
+        magicCityService.deleteMagicCityById(bookCreature.creatureLocation.id, token)
+//        try {
+//            bookCreatureRepository.delete(bookCreature)
+//            try {
+//                coordinatesService.deleteCoordinates(bookCreature.coordinates.id)
+//            } catch (e: Exception) {
+//                throw e
+//            }
+//            try {
+//                ringService.deleteRingById(bookCreature.ring.id, token)
+//            } catch (e: Exception) {
+//                ringService.grabRingFromCreature(bookCreature.ring)
+//                throw e
+//            }
+//            try {
+//                magicCityService.deleteMagicCityById(bookCreature.creatureLocation.id, token)
+//            } catch (e: Exception) {
+//                throw e
+//            }
+//        } catch (e: Exception) {
+//            throw e
+//        }
+//    }
 }

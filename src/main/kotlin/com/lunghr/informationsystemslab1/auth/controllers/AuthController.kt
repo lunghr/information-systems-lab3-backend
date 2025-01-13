@@ -8,13 +8,17 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = ["*"])
 @Tag(name = "Authentication")
 class AuthController {
     @Autowired
@@ -30,5 +34,11 @@ class AuthController {
     @PostMapping("/register")
     fun register(@RequestBody @Valid registerRequest: RegisterRequest): TokenResponse {
         return authService.register(registerRequest)
+    }
+
+    @Operation(summary = "Get username from token")
+    @GetMapping("/username")
+    fun getUsername(@RequestHeader("Authorization") token: String): String {
+        return authService.getUsernameFromToken(token)
     }
 }

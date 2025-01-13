@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.lunghr.informationsystemslab1.auth.model.ent.User
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -47,6 +48,7 @@ class BookCreature(
     @ManyToOne
     @JoinColumn(name = "creature_location", nullable = false)
     @NotNull
+    @JsonBackReference
     var creatureLocation: MagicCity,
 
     @OneToOne

@@ -22,7 +22,15 @@ class JwtAuthFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        // Get JWT token from header
+        if ("OPTIONS" == request.method) {
+            response.status = HttpServletResponse.SC_OK
+            response.setHeader("Access-Control-Allow-Origin", "*")
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With")
+            return
+        }
+
+// Get JWT token from header
         val jwt = jwtService.getTokenFromHeader(request)
         // Get username from JWT token
         val username = jwt?.let { jwtService.getUsername(it) }

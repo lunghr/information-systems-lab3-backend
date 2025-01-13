@@ -5,8 +5,10 @@ import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.RingDto
 import com.lunghr.informationsystemslab1.dto.RingResponseDto
 import com.lunghr.informationsystemslab1.model.Ring
+import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.RingAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.RingAlreadyOwnedException
+import com.lunghr.informationsystemslab1.model.exceptions.RingNotFoundException
 import com.lunghr.informationsystemslab1.model.repos.RingRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -36,6 +38,7 @@ class RingService @Autowired constructor(
             id = ring.id, name = ring.name, weight = ring.weight, userId = ring.user.getId()
         )
     }
+
     fun createRing(ringDto: RingDto, token: String): RingResponseDto {
         val ring = createRingObject(ringDto, token)
         return createRingResponseDtoObject(ring)
@@ -50,6 +53,32 @@ class RingService @Autowired constructor(
                 } else {
                     throw RingAlreadyOwnedException("Ring ${ringDto.name} already has an owner")
                 }
-            } ?: createRingObject(ringDto, token)
+            } ?: createRingObject(ringDto, token).also { createdRing ->
+            createdRing.ownerless = false
+            ringRepository.save(createdRing)
+        }
+    }
+
+    fun grabRingFromCreature(ring: Ring): Ring {
+        return ringRepository.findByName(ring.name)
+            ?.let { ring ->
+                if (ring.ownerless) {
+                    throw RingAlreadyOwnedException("Ring ${ring.name} already has no owner")
+                } else {
+                    ring.ownerless = true
+                    ringRepository.save(ring)
+                }
+            } ?: throw RingNotFoundException("Ring ${ring.name} not found")
+    }
+
+    fun deleteRingById(id: Long, token: String) {
+        ringRepository.findRingById(id)?.let { ring ->
+            if (ring.user.username != jwtService.getUsername(jwtService.extractToken(token))) {
+                throw AccessDeniedException("You are not allowed to delete this ring")
+            } else if (!ring.ownerless) {
+                throw RingAlreadyOwnedException("Ring ${ring.name} has an owner, you are not allowed to delete it")
+            }
+            ringRepository.delete(ring)
+        } ?: throw RingNotFoundException("Ring with id $id not found")
     }
 }
