@@ -39,6 +39,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.jsonwebtoken:jjwt:0.12.6")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
     implementation("io.springfox:springfox-swagger-ui:3.0.0")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")

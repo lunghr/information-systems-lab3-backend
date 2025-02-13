@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.controllers
 
+import com.lunghr.informationsystemslab1.import.exceptions.InvalidFileDataException
 import com.lunghr.informationsystemslab1.model.exceptions.AccessDeniedException
 import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureAlreadyExistsException
 import com.lunghr.informationsystemslab1.model.exceptions.BookCreatureNotFoundException
@@ -59,5 +60,10 @@ class ExceptionHandler {
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFoundException(e: UserNotFoundException): ResponseEntity<String> {
         return ResponseEntity.status(404).body(e.message)
+    }
+
+    @ExceptionHandler(InvalidFileDataException::class)
+    fun handleInvalidFileDataException(e: InvalidFileDataException): ResponseEntity<String> {
+        return ResponseEntity.status(400).body(e.message)
     }
 }

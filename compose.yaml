@@ -1,6 +1,6 @@
 services:
   backend:
-    image: lunghr/is-lab1-backend:latest
+    image: lunghr/is-lab2-backend:latest
     container_name: backend
     build:
       context: .
@@ -31,10 +31,10 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   frontend:
-    image: lunghr/is-lab1-frontend:latest
+    image: lunghr/is-lab2-frontend:latest
     container_name: frontend
     ports:
-      - "5173:5173"
+      - "4173:4173"
 
   adminer:
     image: adminer
