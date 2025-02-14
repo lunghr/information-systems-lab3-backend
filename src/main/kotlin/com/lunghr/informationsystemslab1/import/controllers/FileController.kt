@@ -22,7 +22,11 @@ class FileController(
     @PostMapping("/import")
     @Tag(name = "Import")
     @Transactional(rollbackFor = [Exception::class])
-    fun importObjectsFromFile(@RequestHeader("Authorization") token: String, @RequestParam("file") file: MultipartFile) {
-        fileService.importObjectsFromFile(file, token)
+    fun importObjectsFromFile(
+        @RequestHeader("Authorization") token: String,
+        @RequestParam("file") files: List<MultipartFile>
+    ) {
+        require(files.size <= 4) { "Only 4 files in one request allowed" }
+        fileService.importObjectsFromFiles(files, token)
     }
 }

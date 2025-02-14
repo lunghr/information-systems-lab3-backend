@@ -10,34 +10,53 @@ import com.lunghr.informationsystemslab1.service.MagicCityService
 import com.lunghr.informationsystemslab1.service.RingService
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 @Service
 @Transactional(rollbackFor = [Exception::class])
 class FileService(
     private val magicCityService: MagicCityService,
     private val ringService: RingService,
-    private val bookCreatureService: BookCreatureService
+    private val bookCreatureService: BookCreatureService,
+//    private val taskExecutor: ThreadPoolTaskExecutor
 ) {
-    fun importObjectsFromFile(file: MultipartFile, token: String) {
+    @Transactional(rollbackFor = [Exception::class])
+    fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
+        val executor = Executors.newFixedThreadPool(4)
+        val futures = files.map { file ->
+            executor.submit(Callable { processFile(file, token) })
+        }
+
+        try {
+            futures.forEach { it.get() }
+        } catch (e: Exception) {
+            futures.forEach { it.cancel(true) }
+            throw e
+        } finally {
+            executor.shutdown()
+        }
+    }
+
+    private fun processFile(file: MultipartFile, token: String) {
         require(file.contentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") { "Invalid file type" }
 
-        runCatching {
-            file.inputStream.use { inputStream ->
-                val sheet = XSSFWorkbook(inputStream).getSheetAt(0)
+        file.inputStream.use { inputStream ->
+            val sheet = XSSFWorkbook(inputStream).getSheetAt(0)
 
-                val (rings, magicCities, bookCreatures) = sheet.groupBy { it.getCell(0).stringCellValue.trim() }
-                    .let {
-                        Triple(it["Ring"].orEmpty(), it["MagicCity"].orEmpty(), it["BookCreature"].orEmpty())
-                    }
+            val (rings, magicCities, bookCreatures) = sheet.groupBy { it.getCell(0).stringCellValue.trim() }
+                .let {
+                    Triple(it["Ring"].orEmpty(), it["MagicCity"].orEmpty(), it["BookCreature"].orEmpty())
+                }
 
-                rings.forEach { ringService.createRing(parseRingDto(it), token) }
-                magicCities.forEach { magicCityService.createMagicCity(parseMagicCityDto(it), token) }
-                bookCreatures.forEach { bookCreatureService.createBookCreature(parseBookCreatureDto(it), token) }
-            }
-        }.onFailure { throw InvalidFileDataException("Invalid file data") }
+            rings.forEach { ringService.createRing(parseRingDto(it), token) }
+            magicCities.forEach { magicCityService.createMagicCity(parseMagicCityDto(it), token) }
+            bookCreatures.forEach { bookCreatureService.createBookCreature(parseBookCreatureDto(it), token) }
+        }
     }
 
     private fun parseRingDto(row: Row): RingDto {
