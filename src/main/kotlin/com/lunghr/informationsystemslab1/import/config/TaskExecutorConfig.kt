@@ -12,7 +12,7 @@ class TaskExecutorConfig {
     @Primary
     fun taskExecutor(): ThreadPoolTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
-            corePoolSize = 1
+            corePoolSize = 4
             maxPoolSize = 16
             queueCapacity = 16
             setThreadNamePrefix("import-executor-")
