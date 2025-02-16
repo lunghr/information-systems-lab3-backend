@@ -1,22 +1,24 @@
 package com.lunghr.informationsystemslab1.import.config
 
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import com.lunghr.informationsystemslab1.import.executors.ForkJoinTaskExecutor
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+
+import java.util.concurrent.ForkJoinPool;
 
 @Configuration
-class TaskExecutorConfig {
+class ThreadPoolConfig {
+    @Bean
+    fun forkJoinTaskExecutor(): TaskExecutor {
+        val forkJoinPool = ForkJoinPool(16)
+        return ForkJoinTaskExecutor(forkJoinPool)
+    }
 
     @Bean
-    @Primary
-    fun taskExecutor(): ThreadPoolTaskExecutor {
-        return ThreadPoolTaskExecutor().apply {
-            corePoolSize = 1
-            maxPoolSize = 16
-            queueCapacity = 16
-            setThreadNamePrefix("import-executor-")
-            initialize()
-        }
+    fun forkJoinPool(): ForkJoinPool {
+        val forkJoinPool = ForkJoinPool(16)
+        return forkJoinPool
     }
 }
+
