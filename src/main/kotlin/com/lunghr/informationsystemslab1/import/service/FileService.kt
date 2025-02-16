@@ -30,14 +30,14 @@ class FileService(
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
-                prepareFile(file)
+                prepareFile(file, token)
             }
         }
         futures.forEach { it.get() }
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    fun prepareFile(file: MultipartFile) {
+    fun prepareFile(file: MultipartFile, token: String) {
         println(file.originalFilename)
         file.inputStream.use { inputStream ->
             val workbook = XSSFWorkbook(inputStream)
@@ -58,12 +58,19 @@ class FileService(
             println(startIndex)
             println(endIndex)
 
-            processSheet(sheet, headerMap, startIndex, endIndex, 5)
+            processSheet(sheet, headerMap, startIndex, endIndex, 5, token)
         }
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    fun processSheet(sheet: XSSFSheet, headerMap: Map<String, Int>, startIndex: Int, endIndex: Int, depth: Int) {
+    fun processSheet(
+        sheet: XSSFSheet,
+        headerMap: Map<String, Int>,
+        startIndex: Int,
+        endIndex: Int,
+        depth: Int,
+        token: String
+    ) {
         val spawnTimestamp = System.currentTimeMillis()
         val timeout = 3000
         val forkJoinThreshold = 32
@@ -78,10 +85,10 @@ class FileService(
                 println()
                 println()
                 val firstWorker = forkJoinPool.submit {
-                    processSheet(sheet, headerMap, i, half, depth - 1)
+                    processSheet(sheet, headerMap, i, half, depth - 1, token)
                 }
                 val secondWorker = forkJoinPool.submit {
-                    processSheet(sheet, headerMap, half, endIndex, depth - 1)
+                    processSheet(sheet, headerMap, half, endIndex, depth - 1, token)
                 }
 
                 firstWorker.join()
@@ -90,16 +97,19 @@ class FileService(
                 return
             }
 
-            processRow(sheet.getRow(i), headerMap)
+            processRow(sheet.getRow(i), headerMap, token)
         }
 
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    fun processRow(row: XSSFRow, headerMap: Map<String, Int>) {
+    fun processRow(row: XSSFRow, headerMap: Map<String, Int>, token: String) {
         val ring = extractRingData(row, headerMap)
         val city = extractCityData(row, headerMap)
-        val bookCreature = extractBookCreatureData(row, headerMap)
+        val ringId = ringService.createRing(ring, token).id
+        val cityId = magicCityService.createMagicCity(city, token).id
+        val bookCreature = extractBookCreatureData(row, headerMap, ringId, cityId)
+        bookCreatureService.createBookCreature(bookCreature, token)
     }
 
     fun extractRingData(row: XSSFRow, headerMap: Map<String, Int>): RingDto {
@@ -110,11 +120,16 @@ class FileService(
 
     fun extractCityData(row: XSSFRow, headerMap: Map<String, Int>): MagicCityDto {
         val name = row.getCell(headerMap["City name"]!!).stringCellValue
-        val governor = row.getCell(headerMap["City governor"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).stringCellValue
+        val governor =
+            row.getCell(headerMap["City governor"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).stringCellValue
         val established = row.getCell(headerMap["City established"]!!).localDateTimeCellValue
-        val population = row.getCell(headerMap["City population"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
+        val population =
+            row.getCell(headerMap["City population"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
         val area = row.getCell(headerMap["City area"]!!).numericCellValue
-        val populationDensity = row.getCell(headerMap["City population density"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
+        val populationDensity = row.getCell(
+            headerMap["City population density"]!!,
+            Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
+        ).numericCellValue
         var isCapital: Boolean
 
         try {
@@ -124,7 +139,8 @@ class FileService(
             }
             isCapital = isCapitalValue == "true"
         } catch (e: Exception) {
-            isCapital = row.getCell(headerMap["Is capital"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).booleanCellValue
+            isCapital =
+                row.getCell(headerMap["Is capital"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).booleanCellValue
         }
 
         return MagicCityDto(
@@ -144,11 +160,19 @@ class FileService(
         return CoordinatesDto(xCoordinate.toInt(), yCoordinate)
     }
 
-    fun extractBookCreatureData(row: XSSFRow, headerMap: Map<String, Int>): BookCreatureDto {
+    fun extractBookCreatureData(
+        row: XSSFRow,
+        headerMap: Map<String, Int>,
+        ringId: Long,
+        cityId: Long
+    ): BookCreatureDto {
         val name = row.getCell(headerMap["Creature name"]!!).stringCellValue
         val age = row.getCell(headerMap["Creature age"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
         val creatureType = row.getCell(headerMap["Creature type"]!!).stringCellValue
-        val attackLevel = row.getCell(headerMap["Creature attack level"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
+        val attackLevel = row.getCell(
+            headerMap["Creature attack level"]!!,
+            Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
+        ).numericCellValue
 
         return BookCreatureDto(
             name = name,
@@ -157,8 +181,8 @@ class FileService(
             creationDate = LocalDateTime.now(),
             attackLevel = attackLevel.toFloat(),
             coordinates = extractCoordinatesData(row, headerMap),
-            creatureLocationId = 0L,
-            ringId = 0L
+            creatureLocationId = cityId,
+            ringId = ringId
 
         )
     }
