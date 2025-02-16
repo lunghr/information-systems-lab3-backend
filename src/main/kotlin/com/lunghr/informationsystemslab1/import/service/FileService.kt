@@ -1,9 +1,13 @@
 package com.lunghr.informationsystemslab1.import.service
 
+import com.lunghr.informationsystemslab1.auth.services.JwtService
+import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.BookCreatureDto
 import com.lunghr.informationsystemslab1.dto.CoordinatesDto
 import com.lunghr.informationsystemslab1.dto.MagicCityDto
 import com.lunghr.informationsystemslab1.dto.RingDto
+import com.lunghr.informationsystemslab1.import.model.FileStats
+import com.lunghr.informationsystemslab1.import.model.repos.FileStatsRepository
 import com.lunghr.informationsystemslab1.service.BookCreatureService
 import com.lunghr.informationsystemslab1.service.MagicCityService
 import com.lunghr.informationsystemslab1.service.RingService
@@ -28,16 +32,38 @@ class FileService(
     private val ringService: RingService,
     private val bookCreatureService: BookCreatureService,
     private val forkJoinPool: ForkJoinPool,
-    private val transactionManager: PlatformTransactionManager
+    private val transactionManager: PlatformTransactionManager,
+    private val fileStatsRepository: FileStatsRepository,
+    private val userService: UserService,
+    private val jwtService: JwtService
 ) {
     @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
                 try {
-                    prepareFile(file, token)
+                    val additions = prepareFile(file, token)
+                    fileStatsRepository.save(
+                        FileStats(
+                            additions = additions,
+                            user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
+                            timestamp = LocalDateTime.now(),
+                            filename = file.originalFilename,
+                            finished = true
+                        )
+                    )
+
                 } catch (ex: Exception) {
                     println("Error processing file ${file.originalFilename}")
+                    fileStatsRepository.save(
+                        FileStats(
+                            additions = 0,
+                            user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
+                            timestamp = LocalDateTime.now(),
+                            filename = file.originalFilename,
+                            finished = false
+                        )
+                    )
                 }
             }
         }
@@ -48,14 +74,14 @@ class FileService(
     fun prepareFile(
         file: MultipartFile,
         token: String
-    ) {
+    ): Long {
         println(file.originalFilename)
         file.inputStream.use { inputStream ->
             val workbook = XSSFWorkbook(inputStream)
             val sheet = workbook.getSheetAt(0)
             val rowCount = sheet.physicalNumberOfRows
             if (rowCount == 0) {
-                return
+                return 0
             }
             val header = sheet.getRow(0)
             val headerMap = mutableMapOf<String, Int>()
@@ -94,6 +120,8 @@ class FileService(
                 )
                 checkCallback()
             }
+
+            return (endIndex - startIndex).toLong()
         }
     }
 
