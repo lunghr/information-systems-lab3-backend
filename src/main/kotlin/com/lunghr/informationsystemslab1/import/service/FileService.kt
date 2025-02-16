@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.import.service
 
+import com.lunghr.informationsystemslab1.auth.model.ent.Role
 import com.lunghr.informationsystemslab1.auth.services.JwtService
 import com.lunghr.informationsystemslab1.auth.services.UserService
 import com.lunghr.informationsystemslab1.dto.BookCreatureDto
@@ -273,5 +274,14 @@ class FileService(
             ringId = ringId
 
         )
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    fun getFileStats(token: String): List<FileStats> {
+        val user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token)))
+        if (user.role == Role.ROLE_ADMIN) {
+            return fileStatsRepository.findAll()
+        }
+        return fileStatsRepository.findAllByUser(user)
     }
 }

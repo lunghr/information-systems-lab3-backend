@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.import.model.repos
 
+import com.lunghr.informationsystemslab1.auth.model.ent.User
 import com.lunghr.informationsystemslab1.import.model.FileStats
 import com.lunghr.informationsystemslab1.model.BookCreature
 import com.lunghr.informationsystemslab1.model.BookCreatureType
@@ -12,5 +13,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface FileStatsRepository : JpaRepository<FileStats, Long> {
-
+    fun findAllByUser(user: User): List<FileStats>
 }
