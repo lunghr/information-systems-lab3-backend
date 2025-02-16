@@ -40,6 +40,8 @@ class FileService(
     private val jwtService: JwtService,
     private val notificationHandler: NotificationHandler
 ) {
+
+    @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
