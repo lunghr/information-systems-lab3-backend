@@ -12,11 +12,14 @@ import org.apache.poi.xssf.usermodel.XSSFRow
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
 
 @Service
 @Transactional(rollbackFor = [Exception::class])
@@ -24,20 +27,28 @@ class FileService(
     private val magicCityService: MagicCityService,
     private val ringService: RingService,
     private val bookCreatureService: BookCreatureService,
-    private val forkJoinPool: ForkJoinPool
+    private val forkJoinPool: ForkJoinPool,
+    private val transactionManager: PlatformTransactionManager
 ) {
     @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
-                prepareFile(file, token)
+                try {
+                    prepareFile(file, token)
+                } catch (ex: Exception) {
+                    println("Error processing file ${file.originalFilename}")
+                }
             }
         }
-        futures.forEach { it.get() }
+        futures.forEach { it.join() }
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    fun prepareFile(file: MultipartFile, token: String) {
+    fun prepareFile(
+        file: MultipartFile,
+        token: String
+    ) {
         println(file.originalFilename)
         file.inputStream.use { inputStream ->
             val workbook = XSSFWorkbook(inputStream)
@@ -54,11 +65,35 @@ class FileService(
             val startIndex = 1;
             val endIndex = rowCount
 
-            println(headerMap)
-            println(startIndex)
-            println(endIndex)
+            val transactionTemplate = TransactionTemplate(transactionManager)
+            var stopFlag = false;
 
-            processSheet(sheet, headerMap, startIndex, endIndex, 5, token)
+            val stopCallback = {
+                stopFlag = true
+                throw InterruptedException("Interrupting due to error")
+            }
+            val checkCallback: () -> Boolean = {
+                if (stopFlag) {
+                    println("Interrupting due to error")
+                    throw InterruptedException("Interrupting due to error")
+                }
+                false
+            }
+
+            transactionTemplate.execute {
+                processSheet(
+                    sheet,
+                    headerMap,
+                    startIndex,
+                    endIndex,
+                    5,
+                    token,
+                    transactionTemplate,
+                    stopCallback,
+                    checkCallback
+                )
+                checkCallback()
+            }
         }
     }
 
@@ -69,30 +104,60 @@ class FileService(
         startIndex: Int,
         endIndex: Int,
         depth: Int,
-        token: String
+        token: String,
+        transactionTemplate: TransactionTemplate,
+        stopCallback: () -> Unit,
+        checkCallback: () -> Boolean
     ) {
         val spawnTimestamp = System.currentTimeMillis()
         val timeout = 3000
         val forkJoinThreshold = 32
 
         for (i in startIndex until endIndex) {
-            if (System.currentTimeMillis() - spawnTimestamp > timeout
-                && endIndex - i > forkJoinThreshold
-                && depth > 0
-            ) {
+            checkCallback()
+            if (System.currentTimeMillis() - spawnTimestamp > timeout && endIndex - i > forkJoinThreshold && depth > 0) {
                 val half = (i + endIndex) / 2
 
-                println()
-                println()
+                println("Forking workers for rows $startIndex-$endIndex")
+
                 val firstWorker = forkJoinPool.submit {
-                    processSheet(sheet, headerMap, i, half, depth - 1, token)
+                    transactionTemplate.execute {
+                        processSheet(
+                            sheet,
+                            headerMap,
+                            i,
+                            half,
+                            depth - 1,
+                            token,
+                            transactionTemplate,
+                            stopCallback,
+                            checkCallback
+                        )
+                    }
                 }
                 val secondWorker = forkJoinPool.submit {
-                    processSheet(sheet, headerMap, half, endIndex, depth - 1, token)
+                    transactionTemplate.execute {
+                        processSheet(
+                            sheet,
+                            headerMap,
+                            half,
+                            endIndex,
+                            depth - 1,
+                            token,
+                            transactionTemplate,
+                            stopCallback,
+                            checkCallback
+                        )
+                    }
                 }
 
-                firstWorker.join()
-                secondWorker.join()
+                try {
+                    firstWorker.join()
+                    secondWorker.join()
+                } catch (ex: Exception) {
+                    println("Exception in worker: $startIndex - $endIndex")
+                    stopCallback()
+                }
 
                 return
             }
@@ -127,8 +192,7 @@ class FileService(
             row.getCell(headerMap["City population"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
         val area = row.getCell(headerMap["City area"]!!).numericCellValue
         val populationDensity = row.getCell(
-            headerMap["City population density"]!!,
-            Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
+            headerMap["City population density"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
         ).numericCellValue
         var isCapital: Boolean
 
@@ -161,17 +225,13 @@ class FileService(
     }
 
     fun extractBookCreatureData(
-        row: XSSFRow,
-        headerMap: Map<String, Int>,
-        ringId: Long,
-        cityId: Long
+        row: XSSFRow, headerMap: Map<String, Int>, ringId: Long, cityId: Long
     ): BookCreatureDto {
         val name = row.getCell(headerMap["Creature name"]!!).stringCellValue
         val age = row.getCell(headerMap["Creature age"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL).numericCellValue
         val creatureType = row.getCell(headerMap["Creature type"]!!).stringCellValue
         val attackLevel = row.getCell(
-            headerMap["Creature attack level"]!!,
-            Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
+            headerMap["Creature attack level"]!!, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
         ).numericCellValue
 
         return BookCreatureDto(
