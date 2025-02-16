@@ -12,6 +12,7 @@ import com.lunghr.informationsystemslab1.import.model.repos.FileStatsRepository
 import com.lunghr.informationsystemslab1.service.BookCreatureService
 import com.lunghr.informationsystemslab1.service.MagicCityService
 import com.lunghr.informationsystemslab1.service.RingService
+import com.lunghr.informationsystemslab1.websocket.NotificationHandler
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFRow
 import org.apache.poi.xssf.usermodel.XSSFSheet
@@ -36,9 +37,9 @@ class FileService(
     private val transactionManager: PlatformTransactionManager,
     private val fileStatsRepository: FileStatsRepository,
     private val userService: UserService,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val notificationHandler: NotificationHandler
 ) {
-    @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
@@ -53,6 +54,7 @@ class FileService(
                             finished = true
                         )
                     )
+                    notificationHandler.broadcast("File ${file.originalFilename} processing finished")
 
                 } catch (ex: Exception) {
                     println("Error processing file ${file.originalFilename}")
@@ -65,6 +67,8 @@ class FileService(
                             finished = false
                         )
                     )
+                    notificationHandler.broadcast("File ${file.originalFilename} processing failed")
+                    throw ex
                 }
             }
         }
