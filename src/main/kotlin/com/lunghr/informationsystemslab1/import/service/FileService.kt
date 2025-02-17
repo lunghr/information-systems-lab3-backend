@@ -41,7 +41,7 @@ class FileService(
     private val notificationHandler: NotificationHandler
 ) {
 
-    @Transactional(rollbackFor = [Exception::class])
+//    @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
@@ -70,7 +70,6 @@ class FileService(
                         )
                     )
                     notificationHandler.broadcast("File ${file.originalFilename} processing failed")
-                    throw ex
                 }
             }
         }
@@ -125,7 +124,7 @@ class FileService(
                     stopCallback,
                     checkCallback
                 )
-                checkCallback()
+//                checkCallback()
             }
 
             return (endIndex - startIndex).toLong()
