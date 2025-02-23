@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface RequestRepository : JpaRepository<Request, Long> {
     fun findRequestById(id: Long): Request?
+    fun findRequestByUserId(id: Long): Request?
 }

@@ -35,4 +35,7 @@ class UserService {
     }
 
     fun findAll(): List<User> = userRepository.findAll()
+
+    fun getIdByUsername(username: String): Long = userRepository.findUserByUsername(username)?.getId()
+        ?: throw UserNotFoundException("User not found")
 }

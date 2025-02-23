@@ -5,10 +5,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Service
 @RestController
@@ -22,4 +19,10 @@ class RequestController @Autowired constructor(
     fun requestAdmin(@RequestHeader("Authorization") token: String) {
         requestService.requestAdmin(token)
     }
+    @Operation(summary = "Get request id")
+    @GetMapping("/request-id/{id}")
+    fun getRequestId(@PathVariable id: Long): Long {
+        return requestService.getRequestId(id)
+    }
+
 }

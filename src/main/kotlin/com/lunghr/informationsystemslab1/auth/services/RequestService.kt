@@ -35,4 +35,8 @@ class RequestService @Autowired constructor(
             requestRepository.save(createRequest(token))
         }
     }
+
+    fun getRequestId(id: Long): Long {
+        return requestRepository.findRequestByUserId(id)?.id ?: throw Exception("Request not found")
+    }
 }

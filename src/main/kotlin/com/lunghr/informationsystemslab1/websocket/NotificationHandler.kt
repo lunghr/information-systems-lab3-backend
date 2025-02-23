@@ -33,9 +33,7 @@ class NotificationHandler : TextWebSocketHandler() {
             if (session.isOpen) {
                 try {
                     session.sendMessage(textMessage)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                } catch (ignore: Exception) {}
             }
         }
     }
