@@ -103,9 +103,12 @@ class BookCreatureService @Autowired constructor(
         bookCreature.creatureType = BookCreatureType.valueOf(bookCreatureDto.creatureType)
         bookCreature.creatureLocation =
             magicCityService.addCreatureToCity(bookCreatureDto.creatureLocationId, token)
-        if (bookCreatureRepository.findByRingId(bookCreature.ring.id)?.let { it.id != bookCreature.id } == true)
-            throw RingAlreadyOwnedException("Ring ${bookCreature.ring.name} already has an owner")
-        bookCreature.ring = ringService.addRingToCreature(bookCreatureDto.ringId, token)
+        if (bookCreatureDto.ringId != bookCreature.ring.id) {
+            if (bookCreatureRepository.findByRingId(bookCreatureDto.ringId)?.let { it.id != bookCreature.id } == true) {
+                throw RingAlreadyOwnedException("Ring ${bookCreature.ring.name} already has an owner")
+            }
+            bookCreature.ring = ringService.addRingToCreature(bookCreatureDto.ringId, token)
+        }
         bookCreature.attackLevel = bookCreatureDto.attackLevel
         notificationHandler.broadcast("BookCreature ${bookCreature.name} has been updated")
         bookCreatureRepository.save(bookCreature)

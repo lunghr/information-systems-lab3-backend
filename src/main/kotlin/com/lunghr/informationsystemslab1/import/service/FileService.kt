@@ -1,5 +1,6 @@
 package com.lunghr.informationsystemslab1.import.service
 
+import io.minio.*
 import com.lunghr.informationsystemslab1.auth.model.ent.Role
 import com.lunghr.informationsystemslab1.auth.services.JwtService
 import com.lunghr.informationsystemslab1.auth.services.UserService
@@ -13,16 +14,21 @@ import com.lunghr.informationsystemslab1.service.BookCreatureService
 import com.lunghr.informationsystemslab1.service.MagicCityService
 import com.lunghr.informationsystemslab1.service.RingService
 import com.lunghr.informationsystemslab1.websocket.NotificationHandler
+import io.minio.PutObjectArgs
+import io.minio.RemoveObjectArgs
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFRow
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 import java.time.LocalDateTime
+import java.util.*
 import java.util.concurrent.ForkJoinPool
 
 @Service
@@ -36,26 +42,36 @@ class FileService(
     private val fileStatsRepository: FileStatsRepository,
     private val userService: UserService,
     private val jwtService: JwtService,
+    private val minioClient: MinioClient,
     private val notificationHandler: NotificationHandler
-) {
 
-//    @Transactional(rollbackFor = [Exception::class])
+
+) {
+    @Value("\${minio.bucket}")
+    lateinit var bucketName: String
+
+    @Transactional(rollbackFor = [Exception::class])
     fun importObjectsFromFiles(files: List<MultipartFile>, token: String) {
         val futures = files.map { file ->
             forkJoinPool.submit {
+                val uniqueFileName = UUID.randomUUID().toString() + file.originalFilename
                 try {
+                    uploadFile(file, uniqueFileName)
+
+                    // 2-я фаза - сохраняем данные в БД
                     val additions = prepareFile(file, token)
                     fileStatsRepository.save(
                         FileStats(
                             additions = additions,
                             user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
                             timestamp = LocalDateTime.now(),
-                            filename = file.originalFilename,
+                            originalFilename = file.originalFilename,
+                            storedFilename = uniqueFileName,
                             finished = true
                         )
                     )
-                    notificationHandler.broadcast("File ${file.originalFilename} processing finished")
 
+                    notificationHandler.broadcast("File ${file.originalFilename} processing finished")
                 } catch (ex: Exception) {
                     println("Error processing file ${file.originalFilename}")
                     fileStatsRepository.save(
@@ -63,11 +79,17 @@ class FileService(
                             additions = 0,
                             user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
                             timestamp = LocalDateTime.now(),
-                            filename = file.originalFilename,
+                            originalFilename = file.originalFilename,
+                            storedFilename = uniqueFileName,
                             finished = false
                         )
                     )
                     notificationHandler.broadcast("File ${file.originalFilename} processing failed")
+                    try {
+                        removeFile(uniqueFileName)
+                    } catch (minioEx: Exception) {
+                        println("Failed to delete file from MinIO: ${file.originalFilename}")
+                    }
                 }
             }
         }
@@ -286,5 +308,48 @@ class FileService(
             return fileStatsRepository.findAll()
         }
         return fileStatsRepository.findAllByUser(user)
+    }
+
+    fun uploadFile(file: MultipartFile, fileName: String): String {
+        val inputStream = file.inputStream
+        try {
+            minioClient.putObject(
+                PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .`object`(fileName)
+                    .stream(inputStream, file.size, -1)
+                    .build()
+            )
+            println("File uploaded successfully to MinIO: $fileName")
+            return fileName
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to upload file to MinIO", e)
+        } finally {
+            inputStream.close()
+        }
+    }
+
+
+    fun removeFile(fileName: String) {
+        try {
+            minioClient.removeObject(
+                RemoveObjectArgs.builder()
+                    .bucket(bucketName)
+                    .`object`(fileName)
+                    .build()
+            )
+            println("File deleted successfully from MinIO: $fileName")
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to delete file from MinIO", e)
+        }
+    }
+
+    fun getFileStream(fileName: String): InputStream {
+        return minioClient.getObject(
+            GetObjectArgs.builder()
+                .bucket(bucketName)
+                .`object`(fileName)
+                .build()
+        )
     }
 }

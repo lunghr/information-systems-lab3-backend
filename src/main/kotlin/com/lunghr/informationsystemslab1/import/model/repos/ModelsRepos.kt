@@ -14,4 +14,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface FileStatsRepository : JpaRepository<FileStats, Long> {
     fun findAllByUser(user: User): List<FileStats>
+    fun findByStoredFilename(storedFilename: String): FileStats?
 }

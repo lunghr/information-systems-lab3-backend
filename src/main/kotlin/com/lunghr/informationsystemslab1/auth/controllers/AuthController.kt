@@ -59,4 +59,11 @@ class AuthController {
     fun refreshToken(@RequestHeader("Authorization") token: String): String {
         return authService.refreshToken(token)
     }
+
+
+    @Operation(summary = "Get id from username")
+    @GetMapping("/id/{username}")
+    fun getIdByUsername(@PathVariable username: String): Long {
+        return authService.getIdByUsername(username)
+    }
 }

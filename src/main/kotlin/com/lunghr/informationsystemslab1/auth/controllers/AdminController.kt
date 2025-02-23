@@ -50,4 +50,6 @@ class AdminController @Autowired constructor(
     fun getUsers(): List<UserResponseDto> {
         return adminService.getUsers()
     }
+
+
 }
