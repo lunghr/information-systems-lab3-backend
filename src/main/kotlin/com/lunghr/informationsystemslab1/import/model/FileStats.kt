@@ -27,8 +27,11 @@ class FileStats(
     @JoinColumn(name = "user_id")
     var user: User,
 
-    @Column(name = "filename")
-    var filename: String?,
+    @Column(name = "originalFilename")
+    var originalFilename: String?,
+
+    @Column(name = "storedFilename")
+    var storedFilename: String?,
 
     @Column(name = "additions")
     @NotNull

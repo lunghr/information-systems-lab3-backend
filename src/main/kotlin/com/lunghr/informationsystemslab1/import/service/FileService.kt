@@ -26,6 +26,7 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ForkJoinPool
@@ -64,7 +65,8 @@ class FileService(
                             additions = additions,
                             user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
                             timestamp = LocalDateTime.now(),
-                            filename = file.originalFilename,  // Сохраняем имя файла
+                            originalFilename = file.originalFilename,
+                            storedFilename = uniqueFileName,
                             finished = true
                         )
                     )
@@ -77,7 +79,8 @@ class FileService(
                             additions = 0,
                             user = userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))),
                             timestamp = LocalDateTime.now(),
-                            filename = file.originalFilename,
+                            originalFilename = file.originalFilename,
+                            storedFilename = uniqueFileName,
                             finished = false
                         )
                     )
@@ -339,5 +342,14 @@ class FileService(
         } catch (e: Exception) {
             throw RuntimeException("Failed to delete file from MinIO", e)
         }
+    }
+
+    fun getFileStream(fileName: String): InputStream {
+        return minioClient.getObject(
+            GetObjectArgs.builder()
+                .bucket(bucketName)
+                .`object`(fileName)
+                .build()
+        )
     }
 }
