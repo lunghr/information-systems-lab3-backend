@@ -59,4 +59,8 @@ class AuthService {
         userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token)))
         return jwtService.generateToken(userService.getUserByUsername(jwtService.getUsername(jwtService.extractToken(token))))
     }
+
+    fun getIdByUsername(username: String): Long {
+        return userService.getIdByUsername(username)
+    }
 }
