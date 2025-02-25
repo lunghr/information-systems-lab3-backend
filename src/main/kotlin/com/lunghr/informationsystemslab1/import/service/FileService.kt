@@ -60,6 +60,9 @@ class FileService(
 
                     // 2-я фаза - сохраняем данные в БД
                     val additions = prepareFile(file, token)
+                    if (!isMinioAvailable()){
+                        throw Exception("MinIO is not available")
+                    }
                     fileStatsRepository.save(
                         FileStats(
                             additions = additions,
@@ -351,5 +354,14 @@ class FileService(
                 .`object`(fileName)
                 .build()
         )
+    }
+
+    fun isMinioAvailable(): Boolean {
+        return try {
+            minioClient.listBuckets() // Если запрос проходит, MinIO работает
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }
